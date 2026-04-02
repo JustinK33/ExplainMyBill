@@ -1,0 +1,89 @@
+@import 'tailwindcss';
+
+:root {
+  --bg: #0e1116;
+  --bg-soft: #151a22;
+  --panel: rgba(18, 23, 31, 0.8);
+  --panel-strong: rgba(26, 32, 43, 0.92);
+  --border: rgba(255, 255, 255, 0.09);
+  --text: #f5efe4;
+  --muted: #c6b9a6;
+  --accent: #f2b45d;
+  --accent-2: #7ee1d8;
+  --danger: #ff6b5f;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(242, 180, 93, 0.16), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(126, 225, 216, 0.12), transparent 24%),
+    linear-gradient(180deg, #0e1116 0%, #0b0d11 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+.display-font {
+  font-family: 'Fraunces', serif;
+  letter-spacing: -0.03em;
+}
+
+::selection {
+  background: rgba(242, 180, 93, 0.35);
+  color: var(--text);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.25) 0.5px, transparent 0.5px);
+  background-size: 8px 8px;
+  mix-blend-mode: soft-light;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.panel-strong {
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.soft-glow {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 30px 100px rgba(0, 0, 0, 0.45);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
