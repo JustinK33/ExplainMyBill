@@ -53,15 +53,49 @@ def _extract_pdf_text(contents: bytes, suffix: str) -> str:
         temp_path = Path(temp_file.name)
 
     try:
-        loader = PyPDFLoader(str(temp_path))
-        documents = loader.load()
-        combined_text = "\n".join(document.page_content for document in documents if document.page_content)
-        if combined_text.strip():
-            return combined_text.strip()
+        try:
+            loader = PyPDFLoader(str(temp_path))
+            documents = loader.load()
+            combined_text = "\n".join(document.page_content for document in documents if document.page_content)
+            if combined_text.strip():
+                return combined_text.strip()
+        except Exception as exc:
+            if "cryptography" not in str(exc).lower():
+                raise
 
         reader = PdfReader(str(temp_path))
+        if reader.is_encrypted:
+            try:
+                reader.decrypt("")
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "This PDF appears to be encrypted or protected. Please unlock it first, "
+                        "then upload it again."
+                    ),
+                )
+
         fallback_text = "\n".join((page.extract_text() or "") for page in reader.pages)
-        return fallback_text.strip()
+        if fallback_text.strip():
+            return fallback_text.strip()
+
+        raise HTTPException(
+            status_code=400,
+            detail="We could not read text from this PDF. Please try a clearer PDF, image, or pasted text.",
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        if "cryptography" in str(exc).lower():
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "PDF support for this file is missing a backend dependency. "
+                    "Install `cryptography` in the backend environment and try again."
+                ),
+            ) from exc
+        raise
     finally:
         temp_path.unlink(missing_ok=True)
 

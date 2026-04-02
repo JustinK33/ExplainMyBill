@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict
 
 from dotenv import load_dotenv
@@ -11,6 +12,10 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
+from openai import APIConnectionError, AuthenticationError, OpenAIError
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
 
 try:
     from langchain_classic.memory import ConversationBufferMemory  # type: ignore[import-not-found]
@@ -23,8 +28,6 @@ from backend.chains.flag_agent import FlaggedItem, review_for_flags
 from backend.chains.output import FinalBillResponse, build_final_response
 from backend.chains.router import build_router_chain, route_bill_type
 from backend.loaders.document import extract_text_from_input
-
-load_dotenv()
 
 app = FastAPI(title="Explain My Bill", version="1.0.0")
 
@@ -93,12 +96,25 @@ async def analyze_bill(file: UploadFile | None = File(default=None), text: str |
         return final_response
     except HTTPException:
         raise
+    except AuthenticationError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="The backend could not authenticate with OpenAI. Check the API key and restart the backend.",
+        ) from exc
+    except APIConnectionError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="The backend could not reach OpenAI. Check your internet connection and try again.",
+        ) from exc
+    except OpenAIError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI returned an error while analyzing the bill: {exc}",
+        ) from exc
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=(
-                "We could not analyze this bill right now. Please try a clearer PDF, image, or pasted text."
-            ),
+            detail=f"Unexpected backend error while analyzing the bill: {exc}",
         ) from exc
 
 
