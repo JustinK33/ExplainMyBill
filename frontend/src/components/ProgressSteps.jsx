@@ -14,7 +14,7 @@ function ProgressSteps({ steps, activeStep, isBusy }) {
             }`}
           >
             <div
-              className={`flex h-10 w-10 items-center justify-center rounded-full border text-sm font-extrabold transition ${
+              className={`flex h-11 w-11 items-center justify-center rounded-full border text-base font-extrabold transition ${
                 isComplete
                   ? 'border-[var(--accent-2)]/60 bg-[rgba(126,225,216,0.15)] text-[var(--accent-2)]'
                   : isActive
@@ -25,8 +25,8 @@ function ProgressSteps({ steps, activeStep, isBusy }) {
               {index + 1}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-white">{step}</div>
-              <div className="mt-1 text-xs leading-5 text-[var(--muted)]">
+              <div className="text-base font-semibold text-white">{step}</div>
+              <div className="mt-1 text-sm leading-6 text-[var(--muted)]">
                 {index === 0 && 'Pulling text from the file or pasted content.'}
                 {index === 1 && 'Classifying the bill type so the correct specialist prompt can be used.'}
                 {index === 2 && 'Translating each line into language a non-expert can follow.'}

@@ -12,6 +12,7 @@
   --accent-2: #7ee1d8;
   --danger: #ff6b5f;
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
 }
 
 html,
@@ -23,6 +24,8 @@ body,
 body {
   margin: 0;
   font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  line-height: 1.6;
   color: var(--text);
   background:
     radial-gradient(circle at top left, rgba(242, 180, 93, 0.16), transparent 30%),
@@ -32,6 +35,12 @@ body {
 
 * {
   box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
 }
 
 h1,
@@ -45,6 +54,11 @@ h3,
 ::selection {
   background: rgba(242, 180, 93, 0.35);
   color: var(--text);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(242, 180, 93, 0.9);
+  outline-offset: 3px;
 }
 
 .grain {
@@ -86,4 +100,15 @@ h3,
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

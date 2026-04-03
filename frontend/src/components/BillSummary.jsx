@@ -7,7 +7,7 @@ function BillSummary({ summary }) {
           <h2 className="display-font mt-2 text-2xl font-semibold text-white">What this bill is saying</h2>
         </div>
       </div>
-      <p className="text-base leading-8 text-[rgba(245,239,228,0.95)]">{summary}</p>
+      <p className="text-lg leading-9 text-[rgba(245,239,228,0.95)]">{summary}</p>
     </article>
   );
 }
