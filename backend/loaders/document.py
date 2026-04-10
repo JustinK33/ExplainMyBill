@@ -1,26 +1,39 @@
 from __future__ import annotations
 
 import base64
+import os
 import mimetypes
 import tempfile
+from io import BytesIO
 from pathlib import Path
-from typing import Optional
 
 from fastapi import HTTPException, UploadFile
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
-from PIL import Image
+from PIL import Image, ImageFile
 from PyPDF2 import PdfReader
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 PDF_EXTENSIONS = {".pdf"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
+MAX_TEXT_INPUT_CHARS = 120_000
+MAX_IMAGE_PIXELS = 20_000_000
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS
+ImageFile.LOAD_TRUNCATED_IMAGES = False
 
 
 async def extract_text_from_input(file: UploadFile | None = None, text: str | None = None) -> str:
     if text and text.strip():
-        return text.strip()
+        trimmed_text = text.strip()
+        if len(trimmed_text) > MAX_TEXT_INPUT_CHARS:
+            raise HTTPException(
+                status_code=413,
+                detail="The pasted bill text is too large. Please submit a smaller section.",
+            )
+        return trimmed_text
 
     if file is None:
         raise HTTPException(status_code=400, detail="Please upload a PDF, image, or paste the bill text.")
@@ -101,8 +114,9 @@ def _extract_pdf_text(contents: bytes, suffix: str) -> str:
 
 
 async def _extract_image_text(contents: bytes, mime_type: str) -> str:
+    _validate_image(contents)
     encoded_image = base64.b64encode(contents).decode("utf-8")
-    vision_llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    vision_llm = ChatOpenAI(model=OPENAI_MODEL, temperature=0)
     message = HumanMessage(
         content=[
             {
@@ -122,3 +136,23 @@ async def _extract_image_text(contents: bytes, mime_type: str) -> str:
     )
     response = vision_llm.invoke([message])
     return str(response.content).strip()
+
+
+def _validate_image(contents: bytes) -> None:
+    try:
+        with Image.open(BytesIO(contents)) as image:
+            image.verify()
+        with Image.open(BytesIO(contents)) as image:
+            width, height = image.size
+            if width * height > MAX_IMAGE_PIXELS:
+                raise HTTPException(
+                    status_code=413,
+                    detail="The uploaded image is too large to process safely. Please use a smaller image.",
+                )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="The uploaded image could not be read. Please upload a clear PNG, JPG, or WEBP file.",
+        ) from exc
